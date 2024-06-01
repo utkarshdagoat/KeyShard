@@ -1,0 +1,1 @@
+{"error_code":10000,"instruction":"call -node_id-arg- (\"myService\" \"dkg_part1\") [-id-arg-] ret","message":"Local service error, ret_code is 1, error message is '\"Service with id 'myService' not found (function dkg_part1)\"'","peer_id":"12D3KooWShRkru7kSfioc8yTGGWdm8wCFuZJs1U9MGKEVDKGtdqA"}

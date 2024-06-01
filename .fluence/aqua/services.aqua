@@ -1,0 +1,28 @@
+aqua Services declares *
+
+
+data EndRound2Result:
+  share: []u8
+  pk: string
+  t_pk: string
+
+data Round1FinalState:
+  round1_state: []u8
+
+data Round1Result:
+  round1_state: []u8
+  round1_msg: []u8
+
+data Round2FinalState:
+  round2_state: []u8
+
+data Round2Result:
+  round2_state: []u8
+  shares: []u8
+
+service MyService("myService"):
+  add_shares(round2_state: []u8, all_shares: [][]u8, identifier: u16) -> Round2FinalState
+  combine_round1_msgs(round1_state: []u8, round1_messages: [][]u8, identifier: u16) -> Round1FinalState
+  dkg_part1(identitfier: u16) -> Round1Result
+  end_round2(round2_state: []u8) -> EndRound2Result
+  intiate_round2(round1_state: []u8) -> Round2Result
