@@ -249,6 +249,9 @@ See the [open issues](https://github.com/utkarshdagoat/KeyShard/issues) for a fu
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Research Papers
+The Frost Paper
+* [FROST: Flexible Round-Optimized Schnorr Threshold Signatures](https://eprint.iacr.org/2020/852.pdf)
 
 
 <!-- CONTRIBUTING -->
@@ -281,7 +284,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Utkarsh - [@utkarshdagoat](https://x.com/utkarshdagoat) - utkarsh382004@gmail.com
 
 Project Link: [https://github.com/utkarshdagoat/KeyShard](https://github.com/utkarshdagoat/KeyShard)
 
@@ -290,11 +293,6 @@ Project Link: [https://github.com/utkarshdagoat/KeyShard](https://github.com/utk
 
 
 <!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-* []()
-* []()
-* []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
