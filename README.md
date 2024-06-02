@@ -23,7 +23,6 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 
 
 
@@ -39,14 +38,14 @@
   <p align="center">
      <b>KeyShard</b> facilitates distributed key generation using <b>FROST</b>, a threshold Schnorr signature scheme. Participants contribute to a multi-party computation protocol, generating key shares without learning the complete secret. Made on top of the <b><a href="https://fluence.dev/">Fluence Netowork</a></b> providing decentralized serverless compute/
     <br />
-    <a href="https://github.com/github_username/KeyShard"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/utkarshdagoat/KeyShard"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/github_username/KeyShard">View Demo</a>
+    <a href="https://github.com/utkarshdagoat/KeyShard">View Demo</a>
     ·
-    <a href="https://github.com/github_username/KeyShard/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+    <a href="https://github.com/utkarshdagoat/KeyShard/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     ·
-    <a href="https://github.com/github_username/KeyShard/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/utkarshdagoat/KeyShard/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
 
@@ -96,7 +95,91 @@ Centralized key management poses a serious risk to the cryptocurrency industry. 
 ### Understanding FROST(Flexible Round-Optimized Schnorr Threshold Signatures)
 Here is the algorithm from the research paper
 
-![Product Name Screen Shot][frost-screenshot]
+![Algorithm][frost-screenshot]
+
+
+The implmentaion of the above algorithm is explained in [IMPLEMENTATION.md](https://github.com/utkarshdagoat/KeyShard/IMPLEMENTATION.md)
+
+### Architecture
+![Architecture][architecture]
+
+#### Frontend
+
+Interacts with a Gateway residing in front of the Fluence peer-to-peer (P2P) network.
+
+#### Gateway
+
+It is the reverse proxy which calls the below aqua services. All the API's for the gateway can be found in
+[API.md](https://github.com/utkarshdagoat/KeyShard/API.md)
+
+#### Aqua Services (DKG Service)
+
+Acts as a serverless service deployed on the Fluence network.
+Offers the following functionalities:
+All the code can be found in `src/aqua/main.aqua`
+
+##### dkg_part1(identifier, secret)
+
+Initiates the DKG process for a participant.
+
+- `identifier`: Unique identifier for the participant.
+- `secret`: Global Secret all the parties decide on( used in FROST).
+
+Returns a `Round1Result` containing:
+- `round1_state`: Internal state used for subsequent rounds.
+- `round1_msg`: Message to be broadcast to other participants in round 1 ( containing a FROST partial public key).
+- `secret` : The secret in the prime field
+
+##### combine_round1_msgs(round1_state, round1_messages, identifier)
+
+Combines received round 1 messages.
+
+- `round1_state`: Internal state from `dkg_part1`.
+- `round1_messages`: Collection of messages received from other participants in round 1.
+- `identifier`: Participant's identifier.
+
+Returns a `Round1FinalState`: Updated internal state for round 2.
+
+##### initiate_round2(round1_state)
+
+Initiates round 2 of the DKG protocol.
+
+- `round1_state`: Final state from `combine_round1_msgs`.
+
+Returns a `Round2Result` containing:
+- `round2_state`: Internal state for subsequent calls.
+- `shares`: Participant's share of the generated key.
+
+##### add_shares(round2_state, all_shares, identifier)
+
+Aggregates key shares from other participants.
+
+- `round2_state`: Internal state from `initiate_round2`.
+- `all_shares`: Collection of key shares received from other participants.
+- `identifier`: Participant's identifier.
+
+Returns a `Round2FinalState`: Updated internal state for reconstruction.
+
+##### end_round2(round2_state)
+
+Finalizes the key generation process.
+
+- `round2_state`: Final state from `add_shares`.
+
+Returns an `EndRound2Result` containing:
+- `share`: Participant's final key share.
+- `pk`: Participant's public key derived from the share.
+- `t_pk`: Threshold public key (likely reconstructed using a threshold of shares).
+
+##### reconstruct_share(final_shares)
+
+(Optional) Reconstructs the complete key if authorized.
+
+- `final_shares`: Collection of final key shares from all participants.
+
+Returns a `FinalResult` containing:
+- `reconstructed_share`: The complete reconstructed key (accessible only to authorized parties).
+
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -143,10 +226,14 @@ To get a local copy up and running follow these simple example steps.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+### Adaptable and Expandable for DAO Governance:
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+- **Flexibility**: The FROST protocol allows for optimization based on network conditions by providing two or single communication rounds with preprocessing. Fluence scales effectively to handle an increasing number of users.
+- **Advantages for DAOs**: DAOs may restrict access to sensitive resources and safely handle keys for a variety of governance tasks, such as multi-signature wallets. This strategy goes beyond DAOs. **KeyShard** is applicable to a number of scenarios that call for distributed and secure key generation, including secure communications, safe multi-party computation, secure collaboration platforms, secure bootstrapping for dApps, and secure key sharing for wallets and vaults.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+#### **KeyShard**, built on the foundation of FROST DKG and Fluence, empowers secure and scalable distributed key generation for various applications, particularly within DAOs, fostering trust, transparency, and resilience in their governance processes.
+
+**KeyShard** tackles a critical issue in cryptocurrency wallets and vaults: single points of failure from private keys. It leverages FROST DKG on the Fluence network to distribute key generation. Participants collaboratively create a secret key split into shares. No one holds the entire key, and a threshold of shares is needed for access. This eliminates a central point of attack and fosters secure, decentralized management of digital assets.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -155,12 +242,10 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] **Advanced Threshold Schemes:** For a fixed threshold (t), KeyShard probably uses Shamir's Secret Sharing at the moment. Key reconstruction may be possible even in the event that a predetermined percentage of players are hostile or unavailable if more complex threshold mechanisms, such as Byzantine Fault Tolerance (BFT), are put into use.
+- [ ] **Recovery Mechanisms:** In the event that essential shares are misplaced or compromised, a recovery mechanism may prove advantageous. This would entail integrating FROST DKG with a secure multi-party computation (MPC) protocol that permits share regeneration under particular circumstances and authorization processes.
 
-See the [open issues](https://github.com/github_username/KeyShard/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/utkarshdagoat/KeyShard/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -198,7 +283,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
 
-Project Link: [https://github.com/github_username/KeyShard](https://github.com/github_username/KeyShard)
+Project Link: [https://github.com/utkarshdagoat/KeyShard](https://github.com/utkarshdagoat/KeyShard)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -231,6 +316,7 @@ Project Link: [https://github.com/github_username/KeyShard](https://github.com/g
 [linkedin-url]: https://linkedin.com/in/linkedin_username
 [product-screenshot]: images/image.png
 [frost-screenshot]: images/frost.png
+[architecture]: images/architecture.png
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
