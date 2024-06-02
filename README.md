@@ -98,7 +98,7 @@ Here is the algorithm from the research paper
 ![Algorithm][frost-screenshot]
 
 
-The implmentaion of the above algorithm is explained in [IMPLEMENTATION.md](https://github.com/utkarshdagoat/KeyShard/IMPLEMENTATION.md)
+The implmentaion of the above algorithm is explained in [IMPLEMENTATION.md](https://github.com/utkarshdagoat/KeyShard/blob/master/IMPLEMENTATION.md)
 
 ### Architecture
 ![Architecture][architecture]
@@ -110,7 +110,7 @@ Interacts with a Gateway residing in front of the Fluence peer-to-peer (P2P) net
 #### Gateway
 
 It is the reverse proxy which calls the below aqua services. All the API's for the gateway can be found in
-[API.md](https://github.com/utkarshdagoat/KeyShard/API.md)
+[API.md](https://github.com/utkarshdagoat/KeyShard/blob/master/API.md)
 
 #### Aqua Services (DKG Service)
 
