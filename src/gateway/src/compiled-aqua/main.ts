@@ -31,42 +31,11 @@ export const runRoundOne_script = `
         (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
         (call %init_peer_id% ("getDataSrv" "id") [] -id-arg-)
        )
-       (new $option-inline
-        (seq
-         (seq
-          (new %Deal_obj_map
-           (seq
-            (seq
-             (seq
-              (seq
-               (seq
-                (seq
-                 (ap ("chainNetwork" "local") %Deal_obj_map)
-                 (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                )
-                (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-               )
-               (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-              )
-              (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-             )
-             (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-            )
-            (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-           )
-          )
-          (xor
-           (ap Deal_obj $option-inline)
-           (null)
-          )
-         )
-         (canon %init_peer_id% $option-inline  #option-inline-0)
-        )
-       )
+       (call %init_peer_id% ("getDataSrv" "secret") [] -secret-arg-)
       )
       (new %Deals_obj_map
        (seq
-        (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
+        (ap ("myDeployment" []) %Deals_obj_map)
         (canon %init_peer_id% %Deals_obj_map  Deals_obj)
        )
       )
@@ -137,7 +106,7 @@ export const runRoundOne_script = `
            (canon ret.$.workers.[0].host_id $-ephemeral-stream-  #-ephemeral-canon-)
           )
          )
-         (call ret.$.workers.[0].worker_id.[0] ("myService" "dkg_part1") [-id-arg-] ret-0)
+         (call ret.$.workers.[0].worker_id.[0] ("myService" "dkg_part1") [-id-arg- -secret-arg-] ret-0)
         )
         (new $-ephemeral-stream-
          (new #-ephemeral-canon-
@@ -177,9 +146,9 @@ export const runRoundOne_script = `
 )
 `;
 
-export type RunRoundOneResultType = { round1_msg: number[]; round1_state: number[]; }
+export type RunRoundOneResultType = { round1_msg: number[]; round1_state: number[]; secret: string; }
 
-export type RunRoundOneParams = [id: number, config?: {ttl?: number}] | [peer: IFluenceClient$$, id: number, config?: {ttl?: number}];
+export type RunRoundOneParams = [id: number, secret: number, config?: {ttl?: number}] | [peer: IFluenceClient$$, id: number, secret: number, config?: {ttl?: number}];
 
 export type RunRoundOneResult = Promise<RunRoundOneResultType>;
 
@@ -193,6 +162,10 @@ export function runRoundOne(...args: RunRoundOneParams): RunRoundOneResult {
             "fields": {
                 "id": {
                     "name": "u16",
+                    "tag": "scalar"
+                },
+                "secret": {
+                    "name": "u64",
                     "tag": "scalar"
                 }
             },
@@ -216,6 +189,10 @@ export function runRoundOne(...args: RunRoundOneParams): RunRoundOneResult {
                                 "tag": "scalar"
                             },
                             "tag": "array"
+                        },
+                        "secret": {
+                            "name": "string",
+                            "tag": "scalar"
                         }
                     },
                     "tag": "struct"
@@ -318,50 +295,16 @@ export const addRoundOneMessages_script = `
       (seq
        (seq
         (seq
-         (seq
-          (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
-          (call %init_peer_id% ("getDataSrv" "round1_state") [] -round1_state-arg-)
-         )
-         (call %init_peer_id% ("getDataSrv" "messages") [] -messages-arg-)
+         (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+         (call %init_peer_id% ("getDataSrv" "round1_state") [] -round1_state-arg-)
         )
-        (call %init_peer_id% ("getDataSrv" "id") [] -id-arg-)
+        (call %init_peer_id% ("getDataSrv" "messages") [] -messages-arg-)
        )
-       (new $option-inline
-        (seq
-         (seq
-          (new %Deal_obj_map
-           (seq
-            (seq
-             (seq
-              (seq
-               (seq
-                (seq
-                 (ap ("chainNetwork" "local") %Deal_obj_map)
-                 (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                )
-                (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-               )
-               (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-              )
-              (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-             )
-             (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-            )
-            (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-           )
-          )
-          (xor
-           (ap Deal_obj $option-inline)
-           (null)
-          )
-         )
-         (canon %init_peer_id% $option-inline  #option-inline-0)
-        )
-       )
+       (call %init_peer_id% ("getDataSrv" "id") [] -id-arg-)
       )
       (new %Deals_obj_map
        (seq
-        (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
+        (ap ("myDeployment" []) %Deals_obj_map)
         (canon %init_peer_id% %Deals_obj_map  Deals_obj)
        )
       )
@@ -557,44 +500,10 @@ export const showSubnet_script = `
         (seq
          (seq
           (seq
-           (seq
-            (new $option-inline
-             (seq
-              (seq
-               (new %Deal_obj_map
-                (seq
-                 (seq
-                  (seq
-                   (seq
-                    (seq
-                     (seq
-                      (ap ("chainNetwork" "local") %Deal_obj_map)
-                      (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                     )
-                     (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-                    )
-                    (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-                   )
-                   (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-                  )
-                  (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-                 )
-                 (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-                )
-               )
-               (xor
-                (ap Deal_obj $option-inline)
-                (null)
-               )
-              )
-              (canon %init_peer_id% $option-inline  #option-inline-0)
-             )
-            )
-            (new %Deals_obj_map
-             (seq
-              (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
-              (canon %init_peer_id% %Deals_obj_map  Deals_obj)
-             )
+           (new %Deals_obj_map
+            (seq
+             (ap ("myDeployment" []) %Deals_obj_map)
+             (canon %init_peer_id% %Deals_obj_map  Deals_obj)
             )
            )
            (ap Deals_obj.$.myDeployment Deals_obj_flat)
@@ -752,28 +661,28 @@ export const showSubnet_script = `
                        )
                       )
                       (par
+                       (new $option-inline
+                        (seq
+                         (xor
+                          (seq
+                           (canon w-0.$.worker_id.[0] $services_aliases  #push-to-stream-103)
+                           (ap #push-to-stream-103 $option-inline)
+                          )
+                          (null)
+                         )
+                         (canon w-0.$.worker_id.[0] $option-inline  #option-inline-0)
+                        )
+                       )
                        (new $option-inline-1
                         (seq
                          (xor
                           (seq
-                           (canon w-0.$.worker_id.[0] $services_aliases  #push-to-stream-118)
-                           (ap #push-to-stream-118 $option-inline-1)
+                           (canon w-0.$.worker_id.[0] $spells_aliases  #push-to-stream-108)
+                           (ap #push-to-stream-108 $option-inline-1)
                           )
                           (null)
                          )
                          (canon w-0.$.worker_id.[0] $option-inline-1  #option-inline-1-0)
-                        )
-                       )
-                       (new $option-inline-2
-                        (seq
-                         (xor
-                          (seq
-                           (canon w-0.$.worker_id.[0] $spells_aliases  #push-to-stream-123)
-                           (ap #push-to-stream-123 $option-inline-2)
-                          )
-                          (null)
-                         )
-                         (canon w-0.$.worker_id.[0] $option-inline-2  #option-inline-2-0)
                         )
                        )
                       )
@@ -784,9 +693,9 @@ export const showSubnet_script = `
                         (seq
                          (seq
                           (ap ("host_id" w-0.$.host_id) %WorkerServices_obj_map)
-                          (ap ("services" #option-inline-1-0) %WorkerServices_obj_map)
+                          (ap ("services" #option-inline-0) %WorkerServices_obj_map)
                          )
-                         (ap ("spells" #option-inline-2-0) %WorkerServices_obj_map)
+                         (ap ("spells" #option-inline-1-0) %WorkerServices_obj_map)
                         )
                         (ap ("worker_id" w-0.$.worker_id) %WorkerServices_obj_map)
                        )
@@ -1069,44 +978,10 @@ export const runDeployedServices_script = `
         (seq
          (seq
           (seq
-           (seq
-            (new $option-inline
-             (seq
-              (seq
-               (new %Deal_obj_map
-                (seq
-                 (seq
-                  (seq
-                   (seq
-                    (seq
-                     (seq
-                      (ap ("chainNetwork" "local") %Deal_obj_map)
-                      (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                     )
-                     (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-                    )
-                    (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-                   )
-                   (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-                  )
-                  (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-                 )
-                 (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-                )
-               )
-               (xor
-                (ap Deal_obj $option-inline)
-                (null)
-               )
-              )
-              (canon %init_peer_id% $option-inline  #option-inline-0)
-             )
-            )
-            (new %Deals_obj_map
-             (seq
-              (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
-              (canon %init_peer_id% %Deals_obj_map  Deals_obj)
-             )
+           (new %Deals_obj_map
+            (seq
+             (ap ("myDeployment" []) %Deals_obj_map)
+             (canon %init_peer_id% %Deals_obj_map  Deals_obj)
             )
            )
            (ap Deals_obj.$.myDeployment Deals_obj_flat)
@@ -1188,20 +1063,20 @@ export const runDeployedServices_script = `
                         )
                        )
                       )
-                      (new $option-inline-1
+                      (new $option-inline
                        (seq
                         (xor
-                         (ap "mkc" $option-inline-1)
+                         (ap "mkc" $option-inline)
                          (null)
                         )
-                        (canon w-0.$.worker_id.[0] $option-inline-1  #option-inline-1-0)
+                        (canon w-0.$.worker_id.[0] $option-inline  #option-inline-0)
                        )
                       )
                      )
                      (new %Answer_obj-0_map
                       (seq
                        (seq
-                        (ap ("answer" #option-inline-1-0) %Answer_obj-0_map)
+                        (ap ("answer" #option-inline-0) %Answer_obj-0_map)
                         (ap ("worker" w-0) %Answer_obj-0_map)
                        )
                        (canon w-0.$.worker_id.[0] %Answer_obj-0_map  Answer_obj-0)
@@ -1363,50 +1238,16 @@ export const addShares_script = `
       (seq
        (seq
         (seq
-         (seq
-          (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
-          (call %init_peer_id% ("getDataSrv" "round2_state") [] -round2_state-arg-)
-         )
-         (call %init_peer_id% ("getDataSrv" "shares") [] -shares-arg-)
+         (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+         (call %init_peer_id% ("getDataSrv" "round2_state") [] -round2_state-arg-)
         )
-        (call %init_peer_id% ("getDataSrv" "id") [] -id-arg-)
+        (call %init_peer_id% ("getDataSrv" "shares") [] -shares-arg-)
        )
-       (new $option-inline
-        (seq
-         (seq
-          (new %Deal_obj_map
-           (seq
-            (seq
-             (seq
-              (seq
-               (seq
-                (seq
-                 (ap ("chainNetwork" "local") %Deal_obj_map)
-                 (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                )
-                (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-               )
-               (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-              )
-              (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-             )
-             (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-            )
-            (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-           )
-          )
-          (xor
-           (ap Deal_obj $option-inline)
-           (null)
-          )
-         )
-         (canon %init_peer_id% $option-inline  #option-inline-0)
-        )
-       )
+       (call %init_peer_id% ("getDataSrv" "id") [] -id-arg-)
       )
       (new %Deals_obj_map
        (seq
-        (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
+        (ap ("myDeployment" []) %Deals_obj_map)
         (canon %init_peer_id% %Deals_obj_map  Deals_obj)
        )
       )
@@ -1657,46 +1498,12 @@ export const initiateRoundTwo_script = `
     (seq
      (seq
       (seq
-       (seq
-        (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
-        (call %init_peer_id% ("getDataSrv" "round1_state") [] -round1_state-arg-)
-       )
-       (new $option-inline
-        (seq
-         (seq
-          (new %Deal_obj_map
-           (seq
-            (seq
-             (seq
-              (seq
-               (seq
-                (seq
-                 (ap ("chainNetwork" "local") %Deal_obj_map)
-                 (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                )
-                (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-               )
-               (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-              )
-              (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-             )
-             (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-            )
-            (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-           )
-          )
-          (xor
-           (ap Deal_obj $option-inline)
-           (null)
-          )
-         )
-         (canon %init_peer_id% $option-inline  #option-inline-0)
-        )
-       )
+       (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+       (call %init_peer_id% ("getDataSrv" "round1_state") [] -round1_state-arg-)
       )
       (new %Deals_obj_map
        (seq
-        (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
+        (ap ("myDeployment" []) %Deals_obj_map)
         (canon %init_peer_id% %Deals_obj_map  Deals_obj)
        )
       )
@@ -1872,6 +1679,188 @@ export function initiateRoundTwo(...args: InitiateRoundTwoParams): InitiateRound
     );
 }
 
+export const reconstructShare_script = `
+(xor
+ (seq
+  (seq
+   (seq
+    (seq
+     (seq
+      (seq
+       (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+       (call %init_peer_id% ("getDataSrv" "final_shares") [] -final_shares-arg-)
+      )
+      (new %Deals_obj_map
+       (seq
+        (ap ("myDeployment" []) %Deals_obj_map)
+        (canon %init_peer_id% %Deals_obj_map  Deals_obj)
+       )
+      )
+     )
+     (ap Deals_obj.$.myDeployment Deals_obj_flat)
+    )
+    (ap Deals_obj_flat.$.[0].dealIdOriginal Deals_obj_flat_flat)
+   )
+   (xor
+    (seq
+     (seq
+      (call -relay- ("subnet" "resolve") [Deals_obj_flat_flat] ret)
+      (new -if-error-
+       (xor
+        (seq
+         (match ret.$.success false
+          (seq
+           (new $array-inline
+            (seq
+             (seq
+              (ap "Failed to resolve subnet: " $array-inline)
+              (ap ret.$.error $array-inline)
+             )
+             (canon -relay- $array-inline  #array-inline-0)
+            )
+           )
+           (call -relay- ("run-console" "print") [#array-inline-0])
+          )
+         )
+         (new $-ephemeral-stream-
+          (new #-ephemeral-canon-
+           (canon -relay- $-ephemeral-stream-  #-ephemeral-canon-)
+          )
+         )
+        )
+        (seq
+         (seq
+          (ap :error: -if-error-)
+          (xor
+           (seq
+            (match :error:.$.error_code 10001
+             (null)
+            )
+            (new $-ephemeral-stream-
+             (new #-ephemeral-canon-
+              (canon -relay- $-ephemeral-stream-  #-ephemeral-canon-)
+             )
+            )
+           )
+           (fail -if-error-)
+          )
+         )
+         (new $-ephemeral-stream-
+          (new #-ephemeral-canon-
+           (canon -relay- $-ephemeral-stream-  #-ephemeral-canon-)
+          )
+         )
+        )
+       )
+      )
+     )
+     (xor
+      (seq
+       (seq
+        (seq
+         (new $-ephemeral-stream-
+          (new #-ephemeral-canon-
+           (canon ret.$.workers.[0].host_id $-ephemeral-stream-  #-ephemeral-canon-)
+          )
+         )
+         (call ret.$.workers.[0].worker_id.[0] ("myService" "reconstruct_share") [-final_shares-arg-] ret-0)
+        )
+        (new $-ephemeral-stream-
+         (new #-ephemeral-canon-
+          (canon ret.$.workers.[0].host_id $-ephemeral-stream-  #-ephemeral-canon-)
+         )
+        )
+       )
+       (new $-ephemeral-stream-
+        (new #-ephemeral-canon-
+         (canon -relay- $-ephemeral-stream-  #-ephemeral-canon-)
+        )
+       )
+      )
+      (seq
+       (seq
+        (new $-ephemeral-stream-
+         (new #-ephemeral-canon-
+          (canon ret.$.workers.[0].host_id $-ephemeral-stream-  #-ephemeral-canon-)
+         )
+        )
+        (new $-ephemeral-stream-
+         (new #-ephemeral-canon-
+          (canon -relay- $-ephemeral-stream-  #-ephemeral-canon-)
+         )
+        )
+       )
+       (fail :error:)
+      )
+     )
+    )
+    (fail :error:)
+   )
+  )
+  (call %init_peer_id% ("callbackSrv" "response") [ret-0])
+ )
+ (call %init_peer_id% ("errorHandlingSrv" "error") [:error: 0])
+)
+`;
+
+export type ReconstructShareResultType = { recontructed_share: string; }
+
+export type ReconstructShareParams = [final_shares: number[][], config?: {ttl?: number}] | [peer: IFluenceClient$$, final_shares: number[][], config?: {ttl?: number}];
+
+export type ReconstructShareResult = Promise<ReconstructShareResultType>;
+
+export function reconstructShare(...args: ReconstructShareParams): ReconstructShareResult {
+    return callFunction$$(
+        args,
+        {
+    "functionName": "reconstructShare",
+    "arrow": {
+        "domain": {
+            "fields": {
+                "final_shares": {
+                    "type": {
+                        "type": {
+                            "name": "u8",
+                            "tag": "scalar"
+                        },
+                        "tag": "array"
+                    },
+                    "tag": "array"
+                }
+            },
+            "tag": "labeledProduct"
+        },
+        "codomain": {
+            "items": [
+                {
+                    "name": "FinalResult",
+                    "fields": {
+                        "recontructed_share": {
+                            "name": "string",
+                            "tag": "scalar"
+                        }
+                    },
+                    "tag": "struct"
+                }
+            ],
+            "tag": "unlabeledProduct"
+        },
+        "tag": "arrow"
+    },
+    "names": {
+        "relay": "-relay-",
+        "getDataSrv": "getDataSrv",
+        "callbackSrv": "callbackSrv",
+        "responseSrv": "callbackSrv",
+        "responseFnName": "response",
+        "errorHandlingSrv": "errorHandlingSrv",
+        "errorFnName": "error"
+    }
+},
+        reconstructShare_script
+    );
+}
+
 export const endRoundTwo_script = `
 (xor
  (seq
@@ -1880,46 +1869,12 @@ export const endRoundTwo_script = `
     (seq
      (seq
       (seq
-       (seq
-        (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
-        (call %init_peer_id% ("getDataSrv" "round2_state") [] -round2_state-arg-)
-       )
-       (new $option-inline
-        (seq
-         (seq
-          (new %Deal_obj_map
-           (seq
-            (seq
-             (seq
-              (seq
-               (seq
-                (seq
-                 (ap ("chainNetwork" "local") %Deal_obj_map)
-                 (ap ("chainNetworkId" 31337) %Deal_obj_map)
-                )
-                (ap ("dealId" "ce85503de9399d4deca3c0b2bb3e9e7cfcbf9c6b") %Deal_obj_map)
-               )
-               (ap ("dealIdOriginal" "0xCe85503De9399D4dECa3c0b2bb3e9e7CFCBf9C6B") %Deal_obj_map)
-              )
-              (ap ("definition" "bafkreicxcv34olfeeh3vive25ouyezaix5t5wmgaioahisx3hwwqqq77hy") %Deal_obj_map)
-             )
-             (ap ("timestamp" "2024-06-01T07:28:07.589Z") %Deal_obj_map)
-            )
-            (canon %init_peer_id% %Deal_obj_map  Deal_obj)
-           )
-          )
-          (xor
-           (ap Deal_obj $option-inline)
-           (null)
-          )
-         )
-         (canon %init_peer_id% $option-inline  #option-inline-0)
-        )
-       )
+       (call %init_peer_id% ("getDataSrv" "-relay-") [] -relay-)
+       (call %init_peer_id% ("getDataSrv" "round2_state") [] -round2_state-arg-)
       )
       (new %Deals_obj_map
        (seq
-        (ap ("myDeployment" #option-inline-0) %Deals_obj_map)
+        (ap ("myDeployment" []) %Deals_obj_map)
         (canon %init_peer_id% %Deals_obj_map  Deals_obj)
        )
       )

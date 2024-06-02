@@ -4,7 +4,7 @@ use std::{fmt::Debug, process::id};
 use ark_bls12_381::{
     fr::FrConfig,
     g1::{G1_GENERATOR_X, G1_GENERATOR_Y},
-    G1Affine,
+    Fr, G1Affine,
 };
 use ark_ff::{Fp, MontBackend};
 use blake2::Blake2b512;
@@ -25,20 +25,23 @@ pub fn main() {}
 struct Round1Result {
     round1_state: Vec<u8>,
     round1_msg: Vec<u8>,
+    secret: String,
 }
 
 #[marine]
-fn dkg_part1(identitfier: u16) -> Round1Result {
+fn dkg_part1(identitfier: u16, secret: u64) -> Round1Result {
     const MAX_SIGNER: u16 = 5;
     const MIN_SIGNER: u16 = 3;
     let schnorr_ctx = b"test-ctx";
     let mut rng = StdRng::seed_from_u64(0);
     let pub_key_base = G1Affine::new(G1_GENERATOR_X, G1_GENERATOR_Y);
     let participant_id = identitfier as ParticipantId;
+    let secret = Fr::from(secret);
     let (round1_state, round1_msg) =
-        frost_dkg::Round1State::start_with_random_secret::<StdRng, Blake2b512>(
+        frost_dkg::Round1State::start_with_given_secret::<StdRng, Blake2b512>(
             &mut rng,
             participant_id,
+            secret,
             MIN_SIGNER,
             MAX_SIGNER,
             schnorr_ctx,
@@ -48,6 +51,7 @@ fn dkg_part1(identitfier: u16) -> Round1Result {
     Round1Result {
         round1_state: bincode::serialize(&round1_state).unwrap(),
         round1_msg: bincode::serialize(&round1_msg).unwrap(),
+        secret: secret.0.to_string(),
     }
 }
 
@@ -106,7 +110,7 @@ struct Round2FinalState {
 fn add_shares(
     round2_state: Vec<u8>,
     all_shares: Vec<Vec<u8>>,
-    identifier: u16
+    identifier: u16,
 ) -> Round2FinalState {
     let mut round2_state_deserialized =
         bincode::deserialize::<Round2State<G1Affine>>(&round2_state).unwrap();
@@ -117,7 +121,11 @@ fn add_shares(
             let share =
                 bincode::deserialize::<Shares<Fp<MontBackend<FrConfig, 4>, 4>>>(&share).unwrap();
             round2_state_deserialized
-                .add_received_share((i+1) as u16, share.0[(participant_id-1) as usize].clone(), &pub_key_base)
+                .add_received_share(
+                    (i + 1) as u16,
+                    share.0[(participant_id - 1) as usize].clone(),
+                    &pub_key_base,
+                )
                 .unwrap();
         }
     }
@@ -134,15 +142,39 @@ struct EndRound2Result {
 }
 
 #[marine]
-fn end_round2(round2_state: Vec<u8>) ->EndRound2Result {
+fn end_round2(round2_state: Vec<u8>) -> EndRound2Result {
     let mut round2_state_deserialized =
         bincode::deserialize::<Round2State<G1Affine>>(&round2_state).unwrap();
     let pub_key_base = G1Affine::new(G1_GENERATOR_X, G1_GENERATOR_Y);
     let (share, pk, t_pk) = round2_state_deserialized.finish(&pub_key_base).unwrap();
-    
+
     EndRound2Result {
         share: bincode::serialize(&share).unwrap(),
         pk: pk.to_string(),
         t_pk: t_pk.to_string(),
+    }
+}
+
+#[marine]
+struct FinalResult {
+    recontructed_share: String,
+}
+
+#[marine]
+fn reconstruct_share(final_shares: Vec<Vec<u8>>) -> FinalResult {
+    let mut shares = vec![];
+    for share in final_shares {
+        let share = bincode::deserialize::<Share<Fp<MontBackend<FrConfig, 4>, 4>>>(&share)
+            .expect("Final share deserialization failed");
+        shares.push(share);
+    }
+    let shares = Shares(shares);
+    let secret = shares
+        .reconstruct_secret()
+        .expect("Secret reconstruction failed")
+        / Fr::from(5);
+
+    FinalResult {
+        recontructed_share: secret.0.to_string(),
     }
 }

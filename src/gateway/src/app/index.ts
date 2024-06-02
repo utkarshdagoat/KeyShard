@@ -1,9 +1,9 @@
 import { Fluence, KeyPair } from "@fluencelabs/js-client";
 import relays from "../relays.json" assert { type: "json" };
-import { type Static, Type } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import { type FastifyInstance } from "fastify";
 
-import { helloWorld, helloWorldRemote, showSubnet, runDeployedServices, runRoundOne, addRoundOneMessages, type AddRoundOneMessagesResultType, initiateRoundTwo, type InitiateRoundTwoResultType, type AddSharesResultType, addShares, type EndRoundTwoResultType, endRoundTwo } from "../compiled-aqua/main.js";
+import {runRoundOne, addRoundOneMessages, type AddRoundOneMessagesResultType, initiateRoundTwo, type InitiateRoundTwoResultType, type AddSharesResultType, addShares, type EndRoundTwoResultType, endRoundTwo, type ReconstructShareResultType, reconstructShare } from "../compiled-aqua/main.js";
 
 const DEFAULT_ACCESS_TOKEN = "abcdefhi";
 
@@ -70,86 +70,34 @@ export default async function (server: FastifyInstance) {
     await Fluence.disconnect();
   });
 
-  const callbackBody = Type.Object({
-    name: Type.String(),
-  });
-
-  type CallbackBodyType = Static<typeof callbackBody>;
-
-  const callbackResponse = Type.String();
-
-  type CallbackResponseType = Static<typeof callbackResponse>;
-
-  const runDeployedServicesResponse = Type.Array(
-    Type.Object({
-      answer: Type.Union([Type.String(), Type.Null()]),
-      worker: Type.Object({
-        host_id: Type.String(),
-        pat_id: Type.String(),
-        worker_id: Type.Union([Type.String(), Type.Null()]),
-      }),
-    }),
-  );
 
 
-  type RunDeployedServicesResponseType = Static<typeof runDeployedServicesResponse>;
 
-  // Request and response
-  server.post<{ Body: CallbackBodyType; Reply: CallbackResponseType }>(
-    "/my/callback/hello",
-    { schema: { body: callbackBody, response: { 200: callbackResponse } } },
-    async (request, reply) => {
-      const { name } = request.body;
-      const result = await helloWorld(name);
-      return reply.send(result);
-    },
-  );
-
-  // Fire and forget
-  server.get("/my/webhook/hello", async (_request, reply) => {
-    const data = helloWorldRemote("Fluence");
-    return reply.send(data);
-  });
-
-  // No validation schema for simplicity
-  server.get(
-    "/my/callback/showSubnet",
-    async (_request, reply) => {
-      const result = await showSubnet();
-      return reply.send(result);
-    },
-  );
-
-  server.post<{ Reply: RunDeployedServicesResponseType }>(
-    "/my/callback/runDeployedServices",
-    { schema: { response: { 200: runDeployedServicesResponse } } },
-    async (_request, reply) => {
-      const result = await runDeployedServices();
-      return reply.send(result);
-    },
-  );
 
   interface RoundOneReply {
     round1_state: number[],
-    round1_msg: number[]
+    round1_msg: number[],
+    secret: string
   }
 
   interface RoundOneRequest {
-    id: number
+    id: number,
+    secret:number
   }
 
   const runRoundOneService =
     Type.Object({
       round1_state: Type.Array(Type.Number()),
-      round1_msg: Type.Array(Type.Number())
+      round1_msg: Type.Array(Type.Number()),
+      secret: Type.String()
     })
 
   server.post<{ Body: RoundOneRequest, Reply: RoundOneReply }>(
     "/my/callback/roundOne",
     { schema: { response: { 200: runRoundOneService } } },
     async (request, reply) => {
-      const { id } = request.body;
-      const result = await runRoundOne(id);
+      const { id , secret} = request.body;
+      const result = await runRoundOne(id , secret);
       return reply.send(result);
     },
   );
@@ -170,9 +118,9 @@ export default async function (server: FastifyInstance) {
     { schema: { response: { 200: addRoundOneMessagesService } } },
     async (request, reply) => {
       const { id, messages, round1State } = request.body;
-      console.log("id", id)
-      console.log("messages", messages)
-      console.log("round1State", round1State)
+      // console.log("id", id)
+      // console.log("messages", messages)
+      // console.log("round1State", round1State)
       const result = await addRoundOneMessages(round1State, messages, id);
       // console.log(result)
       return reply.send(result);
@@ -242,5 +190,26 @@ export default async function (server: FastifyInstance) {
       return reply.send(result);
     },
   );
+
+  interface reconstructShareRequest {
+    shares: number[][]
+  }
+
+  const reconstructShareService = Type.Object({
+    recontructed_share: Type.String()
+  }) 
+
+
+  server.post<{ Body: reconstructShareRequest, Reply: ReconstructShareResultType }>(
+    "/my/callback/reconstruct",
+    { schema: { response: { 200: reconstructShareService } } },
+    async (request, reply) => {
+      const { shares } = request.body;
+      const result = await reconstructShare(shares)
+      // console.log(result)
+      return reply.send(result);
+    },
+  );
+
 
 };
