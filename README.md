@@ -29,7 +29,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <h2> Winner of hackfs fluence compute track. Checkout here <a href ="https://ethglobal.com/showcase/keyshard-odizm">here</a></h2> <br>
+  <h2> Winner of hackfs fluence compute track. Checkout <a href ="https://ethglobal.com/showcase/keyshard-odizm">here</a></h2> <br>
   <a href="https://github.com/utkarshdagoat/KeyShard">
     <img src="images/logo.svg" alt="Logo" width="100" height="100">
   </a>
